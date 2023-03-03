@@ -12,12 +12,13 @@
 #include "soc/soc.h"
 #include "soc/rtc_cntl_reg.h"
 #include "esp_camera.h"
-
-
 #include <UniversalTelegramBot.h>
 #include <ArduinoJson.h>
 #include <Wire.h>
-//#include "SparkFun280.h"
+#include <ESP32_Servo.h> 
+
+Servo myservo;// Tạo đối tượng tên myservo
+int pos = 0;//Tạo biến nhận giá trị góc quay
 
 // Replace with your network credentials
 const char* ssid = "Tầng I";
@@ -58,43 +59,54 @@ UniversalTelegramBot bot(BOTtoken, clientTCP);
 #define HREF_GPIO_NUM     23
 #define PCLK_GPIO_NUM     22
 
-#define FLASH_LED_PIN 4
+#define Flash 4
 bool flashState = LOW;
 
 // chân kích rơ le đèn
 #define den_san 2
-
-// Motion Sensor
-bool motionDetected = false;
+#define chuong 12
+#define khoaCua 13
+#define coi 14
+#define I2C_SCL 15
+// Cảm biến chuyển động
+// bool motionDetected = false;
 
 // Define I2C Pins for BME280
-#define I2C_SDA 14
-#define I2C_SCL 15
+
 
 //BME280 bme;
  
-int botRequestDelay = 1000;   // mean time between scan messages
-long lastTimeBotRan;     // last time messages' scan has been done
+// int botRequestDelay = 1000;   // Thời gian trung bình giữa các thông báo quét
+// long lastTimeBotRan;     //lần trước quét tin nhắn đã được thực hiện
 
 void handleNewMessages(int numNewMessages);
 String sendPhotoTelegram();
-String chao = "CAMERA thông báo : Camera vừa được kết nối lại với wifi .\n";
+String chao = "CAMERA thông báo : Camera bị mất kết nối trước đó và vừa được kết nối lại với wifi .\n";
 // Get BME280 sensor readings and return them as a String variable
 
 
 // Indicates when motion is detected
-static void IRAM_ATTR detectsMovement(void * arg){
-  //Serial.println("MOTION DETECTED!!!");
-  motionDetected = true;
-}
+// static void IRAM_ATTR detectsMovement(void * arg){
+//   //Serial.println("MOTION DETECTED!!!");
+//   motionDetected = true;
+// }
 
 void setup(){
+    myservo.attach(13,500,2500);
   WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0); 
   Serial.begin(9600);
-  pinMode(FLASH_LED_PIN, OUTPUT);
-  digitalWrite(FLASH_LED_PIN, flashState);
+  pinMode(Flash, OUTPUT);
   pinMode(den_san, OUTPUT);
+  pinMode(khoaCua, OUTPUT);
+  pinMode(coi, OUTPUT);
+
+  pinMode(chuong, INPUT);
+
+  digitalWrite(Flash, flashState);
   digitalWrite(den_san, HIGH);
+  digitalWrite(khoaCua,1);
+  digitalWrite(coi, 0);
+
   WiFi.mode(WIFI_STA);
   Serial.println();
   Serial.print("Connecting to ");
@@ -131,10 +143,10 @@ void setup(){
   config.xclk_freq_hz = 20000000;
   config.pixel_format = PIXFORMAT_JPEG;
 
-  //init with high specs to pre-allocate larger buffers
+  //init với thông số kỹ thuật cao để phân bổ trước các bộ đệm lớn hơn
   if(psramFound()){
     config.frame_size = FRAMESIZE_UXGA;
-    config.jpeg_quality = 10;  //0-63 lower number means higher quality
+    config.jpeg_quality = 10;  //0-63 số thấp hơn có nghĩa là chất lượng cao hơn
     config.fb_count = 2;
   } else {
     config.frame_size = FRAMESIZE_SVGA;
@@ -176,29 +188,42 @@ void loop()
         sendPhotoTelegram(); 
         sendPhoto = false; 
     }
-
-    if(motionDetected)
+    if (digitalRead(chuong)==1)
     {
-        bot.sendMessage(chatId, "Motion detected!!", "");
-        Serial.println("Motion Detected");
-
-
-
         sendPhotoTelegram();
-        motionDetected = false;
+        String welcome = "CAMERA thông báo : có khách bấm chuông.\n";
+            welcome += "Cách soạn văn bản để điều khiển : \n";
+            welcome += "Soạn /open để mở cửa.\n";
+            //welcome += "/flash : toggle flash LED\n";
+            welcome += "Soạn /batden : bật đèn sân\n";
+            // welcome += "Soạn /tatden : tắt đèn sân\n";
+            // welcome += "............................\n";
+            bot.sendMessage(chatId, welcome, "Markdown"); 
     }
+    
+// cảm biến chuyển động
+    // if(motionDetected)
+    // {
+    //     bot.sendMessage(chatId, "Motion detected!!", "");
+    //     Serial.println("Motion Detected");
 
-    if (millis() > lastTimeBotRan + botRequestDelay)
-    {
-        int numNewMessages = bot.getUpdates(bot.last_message_received + 1);
-        while (numNewMessages)
-        {
-            Serial.println("got response");
-            handleNewMessages(numNewMessages);
-            numNewMessages = bot.getUpdates(bot.last_message_received + 1);
-        }
-        lastTimeBotRan = millis();
-    }
+
+
+    //     sendPhotoTelegram();
+    //     motionDetected = false;
+    // }
+
+    // if (millis() > lastTimeBotRan + botRequestDelay)
+    // {
+    //     int numNewMessages = bot.getUpdates(bot.last_message_received + 1);
+    //     while (numNewMessages)
+    //     {
+    //         Serial.println("got response");
+    //         handleNewMessages(numNewMessages);
+    //         numNewMessages = bot.getUpdates(bot.last_message_received + 1);
+    //     }
+    //     lastTimeBotRan = millis();
+    // }
 }
 
 String sendPhotoTelegram()
@@ -317,7 +342,7 @@ void handleNewMessages(int numNewMessages)
         if (text == "/flash111111111111") 
         {
             flashState = !flashState;
-            digitalWrite(FLASH_LED_PIN, flashState);
+            digitalWrite(Flash, flashState);
         }
         if (text == "/chupanh") 
         {
@@ -334,12 +359,28 @@ void handleNewMessages(int numNewMessages)
             
             digitalWrite(den_san,HIGH);
         }
+        if (text == "/khoa") 
+        {
+            for (pos = 140; pos >=30; pos -= 1) {
+                myservo.write(pos);            
+                delay (50);                 
+            }
+        }
+        if (text=="/open")
+        {
+            for (pos =30; pos <= 140; pos += 1) { 
+                myservo.write(pos);
+                delay(15);  
+            }//mở cửa
+        }
+        
         if (text == "/batdau")
         {
-            String welcome = "CAMERA được làm bởi Phạm Thanh Tùng sau đây là hướng dẫn .\n";
+            String welcome = "Sau đây là hướng dẫn sử dụng.\n";
             welcome += "Cách soạn văn bản để điều khiển : \n";
             welcome += "Soạn /chupanh : chụp anh\n";
             //welcome += "/flash : toggle flash LED\n";
+            welcome += "Soạn /open để mở cửa.\n";
             welcome += "Soạn /batden : bật đèn sân\n";
             welcome += "Soạn /tatden : tắt đèn sân\n";
             welcome += "............................\n";
