@@ -29,11 +29,11 @@ const char* password = "0102030405";
 // message you
 
 //String chatId = "-610244292";//tùng group
-String chatId = "5178831759";//id
+String chatId = "-610244292";//id
 // Initialize Telegram BOT
 
-//String BOTtoken = "5360228905:AAFg5rr9sWff000-3m-8tv5oSFtSv9wCZAw";//tùng group
-String BOTtoken = "5904580740:AAHs8Kk4Y9fKytb9NJflz3VrulHLDnXmwW8";
+String BOTtoken = "5360228905:AAFg5rr9sWff000-3m-8tv5oSFtSv9wCZAw";//tùng group
+//String BOTtoken = "5904580740:AAHs8Kk4Y9fKytb9NJflz3VrulHLDnXmwW8";
 bool sendPhoto = false;
 
 WiFiClientSecure clientTCP;
@@ -61,24 +61,24 @@ UniversalTelegramBot bot(BOTtoken, clientTCP);
 
 #define Flash 4
 bool flashState = LOW;
-
+bool trangThaiCua = false;
 // chân kích rơ le đèn
 #define den_san 2
-#define chuong 12
+#define chuong 12//trởa 
 #define khoaCua 13
 #define coi 14
-#define I2C_SCL 15
+#define nutOnOff 15 //trở
 // Cảm biến chuyển động
-// bool motionDetected = false;
+bool motionDetected = false;
 
 // Define I2C Pins for BME280
 
 
 //BME280 bme;
  
-// int botRequestDelay = 1000;   // Thời gian trung bình giữa các thông báo quét
-// long lastTimeBotRan;     //lần trước quét tin nhắn đã được thực hiện
 
+long long lastTimeBotRan; //lần trước quét tin nhắn đã được thực hiện
+int botRequestDelay = 1000;  // Thời gian trung bình giữa các thông báo quét
 void handleNewMessages(int numNewMessages);
 String sendPhotoTelegram();
 String chao = "CAMERA thông báo : Camera bị mất kết nối trước đó và vừa được kết nối lại với wifi .\n";
@@ -86,10 +86,10 @@ String chao = "CAMERA thông báo : Camera bị mất kết nối trước đó 
 
 
 // Indicates when motion is detected
-// static void IRAM_ATTR detectsMovement(void * arg){
-//   //Serial.println("MOTION DETECTED!!!");
-//   motionDetected = true;
-// }
+static void IRAM_ATTR detectsMovement(void * arg){
+  //Serial.println("MOTION DETECTED!!!");
+  motionDetected = true;
+}
 
 void setup(){
     myservo.attach(13,500,2500);
@@ -99,6 +99,7 @@ void setup(){
   pinMode(den_san, OUTPUT);
   pinMode(khoaCua, OUTPUT);
   pinMode(coi, OUTPUT);
+  pinMode(nutOnOff, INPUT);
 
   pinMode(chuong, INPUT);
 
@@ -106,6 +107,7 @@ void setup(){
   digitalWrite(den_san, HIGH);
   digitalWrite(khoaCua,1);
   digitalWrite(coi, 0);
+  
 
   WiFi.mode(WIFI_STA);
   Serial.println();
@@ -182,6 +184,35 @@ void setup(){
 
 void loop()
 {
+    if (digitalRead(nutOnOff)==1)
+    {
+        if (trangThaiCua==false)
+        {
+            trangThaiCua=true;
+        }
+        else{
+            trangThaiCua=false;
+        }
+        
+    }
+    // if (trangThaiCua==false) 
+    //     {
+    //         String mess_trang_thai_cua = "Đang đóng cửa.\n";
+    //         bot.sendMessage(chatId, mess_trang_thai_cua, "Markdown"); 
+    //         for (pos = 140; pos >=30; pos -= 1) {
+    //             myservo.write(pos);            
+    //             delay (50);                 
+    //         }
+    //     }
+    if (trangThaiCua==true)
+    {
+        String mess_trang_thai_cua = "Đang mở cửa.\n";
+        bot.sendMessage(chatId, mess_trang_thai_cua, "Markdown"); 
+        for (pos =30; pos <= 140; pos += 1) { 
+                myservo.write(pos);
+                delay(15);  
+        }//mở cửa
+    }
     if (sendPhoto)
     {
         Serial.println("Preparing photo");
@@ -191,14 +222,14 @@ void loop()
     if (digitalRead(chuong)==1)
     {
         sendPhotoTelegram();
-        String welcome = "CAMERA thông báo : có khách bấm chuông.\n";
-            welcome += "Cách soạn văn bản để điều khiển : \n";
-            welcome += "Soạn /open để mở cửa.\n";
-            //welcome += "/flash : toggle flash LED\n";
-            welcome += "Soạn /batden : bật đèn sân\n";
-            // welcome += "Soạn /tatden : tắt đèn sân\n";
-            // welcome += "............................\n";
-            bot.sendMessage(chatId, welcome, "Markdown"); 
+        String mess_khi_an_chuong = "CAMERA thông báo : có khách bấm chuông.\n";
+            mess_khi_an_chuong += "Cách soạn văn bản để điều khiển : \n";
+            mess_khi_an_chuong += "Soạn /open để mở cửa.\n";
+            //mess_khi_an_chuong += "/flash : toggle flash LED\n";
+            mess_khi_an_chuong += "Soạn /batden : bật đèn sân\n";
+            // mess_khi_an_chuong += "Soạn /tatden : tắt đèn sân\n";
+            // mess_khi_an_chuong += "............................\n";
+            bot.sendMessage(chatId, mess_khi_an_chuong, "Markdown"); 
     }
     
 // cảm biến chuyển động
@@ -213,17 +244,17 @@ void loop()
     //     motionDetected = false;
     // }
 
-    // if (millis() > lastTimeBotRan + botRequestDelay)
-    // {
-    //     int numNewMessages = bot.getUpdates(bot.last_message_received + 1);
-    //     while (numNewMessages)
-    //     {
-    //         Serial.println("got response");
-    //         handleNewMessages(numNewMessages);
-    //         numNewMessages = bot.getUpdates(bot.last_message_received + 1);
-    //     }
-    //     lastTimeBotRan = millis();
-    // }
+    if (millis() > lastTimeBotRan + botRequestDelay)
+    {
+        int numNewMessages = bot.getUpdates(bot.last_message_received + 1);
+        while (numNewMessages)
+        {
+            Serial.println("got response");
+            handleNewMessages(numNewMessages);
+            numNewMessages = bot.getUpdates(bot.last_message_received + 1);
+        }
+        lastTimeBotRan = millis();
+    }
 }
 
 String sendPhotoTelegram()
@@ -361,17 +392,13 @@ void handleNewMessages(int numNewMessages)
         }
         if (text == "/khoa") 
         {
-            for (pos = 140; pos >=30; pos -= 1) {
-                myservo.write(pos);            
-                delay (50);                 
-            }
+            trangThaiCua=false;
+            
         }
         if (text=="/open")
         {
-            for (pos =30; pos <= 140; pos += 1) { 
-                myservo.write(pos);
-                delay(15);  
-            }//mở cửa
+            trangThaiCua=true;
+            
         }
         
         if (text == "/batdau")
