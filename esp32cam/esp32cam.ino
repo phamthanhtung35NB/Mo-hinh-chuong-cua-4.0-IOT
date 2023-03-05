@@ -17,8 +17,8 @@
 #include <Wire.h>
 #include <ESP32_Servo.h> 
 
-Servo myservo;// Tạo đối tượng tên myservo
-int pos = 0;//Tạo biến nhận giá trị góc quay
+Servo myServo;// Tạo đối tượng tên myservo
+//int pos = 0;//Tạo biến nhận giá trị góc quay
 
 // Replace with your network credentials
 const char* ssid = "Tầng I";
@@ -65,7 +65,7 @@ bool trangThaiCua = false;
 // chân kích rơ le đèn
 #define den_san 2
 #define chuong 12//trởa 
-#define khoaCua 13
+//#define khoaCua 13
 #define coi 14
 #define nutOnOff 15 //trở
 // Cảm biến chuyển động
@@ -92,21 +92,21 @@ static void IRAM_ATTR detectsMovement(void * arg){
 }
 
 void setup(){
-    myservo.attach(13,500,2500);
+  
   WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0); 
-  Serial.begin(9600);
+  Serial.begin(115200);
   pinMode(Flash, OUTPUT);
-  pinMode(den_san, OUTPUT);
-  pinMode(khoaCua, OUTPUT);
-  pinMode(coi, OUTPUT);
+  //pinMode(den_san, OUTPUT);
+  //pinMode(khoaCua, OUTPUT);
+  //pinMode(coi, OUTPUT);
   pinMode(nutOnOff, INPUT);
 
   pinMode(chuong, INPUT);
 
   digitalWrite(Flash, flashState);
-  digitalWrite(den_san, HIGH);
-  digitalWrite(khoaCua,1);
-  digitalWrite(coi, 0);
+  //digitalWrite(den_san, HIGH);
+  //digitalWrite(khoaCua,1);
+  //digitalWrite(coi, 0);
   
 
   WiFi.mode(WIFI_STA);
@@ -169,7 +169,7 @@ void setup(){
   s->set_framesize(s, FRAMESIZE_CIF);  // UXGA|SXGA|XGA|SVGA|VGA|CIF|QVGA|HQVGA|QQVGA
 
   // PIR Motion Sensor mode INPUT_PULLUP
-  //err = gpio_install_isr_service(0); 
+  err = gpio_install_isr_service(0); 
   err = gpio_isr_handler_add(GPIO_NUM_13, &detectsMovement, (void *) 13);  
   if (err != ESP_OK){
     Serial.printf("handler add failed with error 0x%x \r\n", err); 
@@ -180,6 +180,7 @@ void setup(){
   }
 
   bot.sendMessage(chatId, chao, "Markdown");
+  
 }
 
 void loop()
@@ -204,15 +205,16 @@ void loop()
     //             delay (50);                 
     //         }
     //     }
-    if (trangThaiCua==true)
-    {
-        String mess_trang_thai_cua = "Đang mở cửa.\n";
-        bot.sendMessage(chatId, mess_trang_thai_cua, "Markdown"); 
-        for (pos =30; pos <= 140; pos += 1) { 
-                myservo.write(pos);
-                delay(15);  
-        }//mở cửa
-    }
+        
+
+                           // Chờ 15ms để động cơ đạt đến vị trí pos
+
+  
+ 
+                           // Chờ 15ms để động cơ đạt đến vị trí pos
+
+  //}//mở cửa
+    
     if (sendPhoto)
     {
         Serial.println("Preparing photo");
@@ -232,18 +234,6 @@ void loop()
             bot.sendMessage(chatId, mess_khi_an_chuong, "Markdown"); 
     }
     
-// cảm biến chuyển động
-    // if(motionDetected)
-    // {
-    //     bot.sendMessage(chatId, "Motion detected!!", "");
-    //     Serial.println("Motion Detected");
-
-
-
-    //     sendPhotoTelegram();
-    //     motionDetected = false;
-    // }
-
     if (millis() > lastTimeBotRan + botRequestDelay)
     {
         int numNewMessages = bot.getUpdates(bot.last_message_received + 1);
@@ -377,6 +367,7 @@ void handleNewMessages(int numNewMessages)
         }
         if (text == "/chupanh") 
         {
+            
             sendPhoto = true;
             Serial.println("New photo  request");
         }
@@ -392,12 +383,23 @@ void handleNewMessages(int numNewMessages)
         }
         if (text == "/khoa") 
         {
-            trangThaiCua=false;
-            
+          myServo.attach(13,100,1100);
+            String mess_trang_thai_cua = "Đang dong cửa.\n";
+          bot.sendMessage(chatId, mess_trang_thai_cua, "Markdown"); 
+            for (int pos =110; pos >= 0; pos -= 1) { //Biến pos sẽ chạy từ 0-180
+            myServo.write(pos);              //ra lệnh servo quay một góc “pos”
+            delay(25); 
+            }     
         }
         if (text=="/open")
         {
-            trangThaiCua=true;
+          myServo.attach(13,100,3000);
+          String mess_trang_thai_cua = "Đang mở cửa.\n";
+          bot.sendMessage(chatId, mess_trang_thai_cua, "Markdown"); 
+          for (int pos =0; pos <= 110; pos +=1) { //Biến pos sẽ chạy từ 0-180
+          myServo.write(pos);              //ra lệnh servo quay một góc “pos”
+          delay(10);  
+        }
             
         }
         
