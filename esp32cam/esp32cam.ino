@@ -15,9 +15,9 @@
 #include <UniversalTelegramBot.h>
 #include <ArduinoJson.h>
 #include <Wire.h>
-#include <ESP32_Servo.h> 
 
-Servo myServo;// Tạo đối tượng tên myservo
+
+// Tạo đối tượng tên myservo
 //int pos = 0;//Tạo biến nhận giá trị góc quay
 
 // Replace with your network credentials
@@ -61,13 +61,8 @@ UniversalTelegramBot bot(BOTtoken, clientTCP);
 
 #define Flash 4
 bool flashState = LOW;
-bool trangThaiCua = false;
-// chân kích rơ le đèn
-#define den_san 2
+
 #define chuong 12//trởa 
-//#define khoaCua 13
-#define coi 14
-#define nutOnOff 15 //trở
 // Cảm biến chuyển động
 bool motionDetected = false;
 
@@ -94,12 +89,8 @@ static void IRAM_ATTR detectsMovement(void * arg){
 void setup(){
   
   WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0); 
-  Serial.begin(115200);
+  Serial.begin(9600);
   pinMode(Flash, OUTPUT);
-  //pinMode(den_san, OUTPUT);
-  //pinMode(khoaCua, OUTPUT);
-  //pinMode(coi, OUTPUT);
-  pinMode(nutOnOff, INPUT);
 
   pinMode(chuong, INPUT);
 
@@ -185,36 +176,7 @@ void setup(){
 
 void loop()
 {
-    if (digitalRead(nutOnOff)==1)
-    {
-        if (trangThaiCua==false)
-        {
-            trangThaiCua=true;
-        }
-        else{
-            trangThaiCua=false;
-        }
-        
-    }
-    // if (trangThaiCua==false) 
-    //     {
-    //         String mess_trang_thai_cua = "Đang đóng cửa.\n";
-    //         bot.sendMessage(chatId, mess_trang_thai_cua, "Markdown"); 
-    //         for (pos = 140; pos >=30; pos -= 1) {
-    //             myservo.write(pos);            
-    //             delay (50);                 
-    //         }
-    //     }
-        
 
-                           // Chờ 15ms để động cơ đạt đến vị trí pos
-
-  
- 
-                           // Chờ 15ms để động cơ đạt đến vị trí pos
-
-  //}//mở cửa
-    
     if (sendPhoto)
     {
         Serial.println("Preparing photo");
@@ -369,39 +331,33 @@ void handleNewMessages(int numNewMessages)
         {
             
             sendPhoto = true;
-            Serial.println("New photo  request");
-        }
-        if (text == "/batden") 
-        {
             
-            digitalWrite(den_san, LOW);
         }
-        if (text == "/tatden") 
-        {
+        // if (text == "/batden") 
+        // {
             
-            digitalWrite(den_san,HIGH);
-        }
+        //     digitalWrite(den_san, LOW);
+        // }
+        // if (text == "/tatden") 
+        // {
+            
+        //     digitalWrite(den_san,HIGH);
+        // }
         if (text == "/khoa") 
         {
-          myServo.attach(13,100,1100);
+            Serial.println("khoa");
             String mess_trang_thai_cua = "Đang dong cửa.\n";
           bot.sendMessage(chatId, mess_trang_thai_cua, "Markdown"); 
-            for (int pos =110; pos >= 0; pos -= 1) { //Biến pos sẽ chạy từ 0-180
-            myServo.write(pos);              //ra lệnh servo quay một góc “pos”
-            delay(25); 
-            }     
+
         }
         if (text=="/open")
         {
-          myServo.attach(13,100,3000);
-          String mess_trang_thai_cua = "Đang mở cửa.\n";
-          bot.sendMessage(chatId, mess_trang_thai_cua, "Markdown"); 
-          for (int pos =0; pos <= 110; pos +=1) { //Biến pos sẽ chạy từ 0-180
-          myServo.write(pos);              //ra lệnh servo quay một góc “pos”
-          delay(10);  
+            Serial.println("open");
+    String mess_trang_thai_cua = "Đang mở cửa.\n";
+bot.sendMessage(chatId, mess_trang_thai_cua, "Markdown");
         }
             
-        }
+        
         
         if (text == "/batdau")
         {
