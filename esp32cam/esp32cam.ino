@@ -150,7 +150,7 @@ void setup(){
   // camera init
   esp_err_t err = esp_camera_init(&config);
   if (err != ESP_OK) {
-    Serial.printf("Camera init failed with error 0x%x", err);
+    //Serial.printf("Camera init failed with error 0x%x", err);
     delay(1000);
     ESP.restart();
   }
@@ -163,14 +163,14 @@ void setup(){
   err = gpio_install_isr_service(0); 
   err = gpio_isr_handler_add(GPIO_NUM_13, &detectsMovement, (void *) 13);  
   if (err != ESP_OK){
-    Serial.printf("handler add failed with error 0x%x \r\n", err); 
+    //Serial.printf("handler add failed with error 0x%x \r\n", err); 
   }
   err = gpio_set_intr_type(GPIO_NUM_13, GPIO_INTR_POSEDGE);
   if (err != ESP_OK){
-    Serial.printf("set intr type failed with error 0x%x \r\n", err);
+    //Serial.printf("set intr type failed with error 0x%x \r\n", err);
   }
 
-  bot.sendMessage(chatId, chao, "Markdown");
+  //bot.sendMessage(chatId, chao, "Markdown");
   
 }
 
@@ -179,13 +179,13 @@ void loop()
 
     if (sendPhoto)
     {
-        Serial.println("Preparing photo");
+        //Serial.println("Preparing photo");
         sendPhotoTelegram(); 
         sendPhoto = false; 
     }
     if (digitalRead(chuong)==1)
     {
-        sendPhotoTelegram();
+        sendPhoto = true;
         String mess_khi_an_chuong = "CAMERA thông báo : có khách bấm chuông.\n";
             mess_khi_an_chuong += "Cách soạn văn bản để điều khiển : \n";
             mess_khi_an_chuong += "Soạn /open để mở cửa.\n";
@@ -201,7 +201,7 @@ void loop()
         int numNewMessages = bot.getUpdates(bot.last_message_received + 1);
         while (numNewMessages)
         {
-            Serial.println("got response");
+            //Serial.println("got response");
             handleNewMessages(numNewMessages);
             numNewMessages = bot.getUpdates(bot.last_message_received + 1);
         }
@@ -219,17 +219,17 @@ String sendPhotoTelegram()
     fb = esp_camera_fb_get();  
     if(!fb) 
     {
-        Serial.println("Camera capture failed");
+        //Serial.println("Camera capture failed");
         delay(1000);
         ESP.restart();
         return "Camera capture failed";
     }  
 
-    Serial.println("Connect to " + String(myDomain));
+    //Serial.println("Connect to " + String(myDomain));
 
     if (clientTCP.connect(myDomain, 443)) 
     {
-        Serial.println("Connection successful");
+        //Serial.println("Connection successful");
 
         String head = "--RandomNerdTutorials\r\nContent-Disposition: form-data; name=\"chat_id\"; \r\n\r\n" + chatId + "\r\n--RandomNerdTutorials\r\nContent-Disposition: form-data; name=\"photo\"; filename=\"esp32-cam.jpg\"\r\nContent-Type: image/jpeg\r\n\r\n";
         String tail = "\r\n--RandomNerdTutorials--\r\n";
@@ -271,7 +271,7 @@ String sendPhotoTelegram()
 
         while ((startTimer + waitTime) > millis())
         {
-            Serial.print(".");
+            //Serial.print(".");
             delay(100);      
             while (clientTCP.available()) 
             {
@@ -291,20 +291,20 @@ String sendPhotoTelegram()
                 break;
         }
         clientTCP.stop();
-        Serial.println(getBody);
+        //Serial.println(getBody);
     }
     else 
     {
         getBody="Connected to api.telegram.org failed.";
-        Serial.println("Connected to api.telegram.org failed.");
+        //Serial.println("Connected to api.telegram.org failed.");
     }
 return getBody;
 }
 
 void handleNewMessages(int numNewMessages)
 {
-    Serial.print("Handle New Messages: ");
-    Serial.println(numNewMessages);
+    //Serial.print("Handle New Messages: ");
+    //Serial.println(numNewMessages);
 
     for (int i = 0; i < numNewMessages; i++)
     {
@@ -318,7 +318,7 @@ void handleNewMessages(int numNewMessages)
 
         // Print the received message
         String text = bot.messages[i].text;
-        Serial.println(text);
+        //Serial.println(text);
 
         String fromName = bot.messages[i].from_name;
 
@@ -333,31 +333,25 @@ void handleNewMessages(int numNewMessages)
             sendPhoto = true;
             
         }
-        // if (text == "/batden") 
-        // {
-            
-        //     digitalWrite(den_san, LOW);
-        // }
-        // if (text == "/tatden") 
-        // {
-            
-        //     digitalWrite(den_san,HIGH);
-        // }
+
         if (text == "/khoa") 
         {
-            Serial.println("khoa");
+            Serial.print("khoa");
             String mess_trang_thai_cua = "Đang dong cửa.\n";
           bot.sendMessage(chatId, mess_trang_thai_cua, "Markdown"); 
 
         }
         if (text=="/open")
         {
-            Serial.println("open");
-    String mess_trang_thai_cua = "Đang mở cửa.\n";
-bot.sendMessage(chatId, mess_trang_thai_cua, "Markdown");
+            Serial.print("open");
+        String mess_trang_thai_cua = "Đang mở cửa.\n";
+        bot.sendMessage(chatId, mess_trang_thai_cua, "Markdown");
         }
             
-        
+        if (text == "/batden") 
+        { 
+            Serial.print("batden");
+        }
         
         if (text == "/batdau")
         {
