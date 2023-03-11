@@ -198,6 +198,7 @@ void loop()
     if (digitalRead(chuong)==1)
     {
         sendPhoto = true;
+        Serial.print("chuong");
         String mess_khi_an_chuong = "CAMERA thông báo : có khách bấm chuông.\n";
             mess_khi_an_chuong += "Cách soạn văn bản để điều khiển : \n";
             mess_khi_an_chuong += "Soạn /open để mở cửa.\n";
