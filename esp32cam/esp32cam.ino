@@ -21,8 +21,8 @@
 //int pos = 0;//Tạo biến nhận giá trị góc quay
 
 // Replace with your network credentials
-const char* ssid = "Tầng I";
-const char* password = "0102030405";
+const char* ssid = "iphone";
+const char* password = "123456789";
 
 // Use @myidbot to find out the chat ID of an individual or a group
 // Also note that you need to click "start" on a bot before it can
