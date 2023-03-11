@@ -76,7 +76,7 @@ long long lastTimeBotRan; //lần trước quét tin nhắn đã được thực
 int botRequestDelay = 1000;  // Thời gian trung bình giữa các thông báo quét
 void handleNewMessages(int numNewMessages);
 String sendPhotoTelegram();
-String chao = "CAMERA thông báo : Camera bị mất kết nối trước đó và vừa được kết nối lại với wifi .\n";
+String chao = "CAMERA thông báo : Camera vừa được kết nối lại với wifi.\n";
 // Get BME280 sensor readings and return them as a String variable
 
 
@@ -170,7 +170,7 @@ void setup(){
     //Serial.printf("set intr type failed with error 0x%x \r\n", err);
   }
 
-  //bot.sendMessage(chatId, chao, "Markdown");
+  bot.sendMessage(chatId, chao, "Markdown");
   
 }
 
@@ -182,6 +182,18 @@ void loop()
         //Serial.println("Preparing photo");
         sendPhotoTelegram(); 
         sendPhoto = false; 
+    }
+    if (Serial.available())
+    {
+        String S_value = Serial.readString();
+        if (S_value=="canhbao")
+        {
+            sendPhoto = true;
+            String mess_khi_an_chuong = "Cảnh báo : có người mở cửa bằng thẻ lạ.\n";
+            mess_khi_an_chuong += "Đây là hình ảnh.\n";
+            bot.sendMessage(chatId, mess_khi_an_chuong, "Markdown"); 
+        }
+        
     }
     if (digitalRead(chuong)==1)
     {
@@ -322,44 +334,44 @@ void handleNewMessages(int numNewMessages)
 
         String fromName = bot.messages[i].from_name;
 
-        if (text == "/flash111111111111") 
+        if (text == "/flash") 
         {
             flashState = !flashState;
             digitalWrite(Flash, flashState);
         }
-        if (text == "/chupanh") 
+        else if (text == "/photo") 
         {
-            
             sendPhoto = true;
-            
         }
-
-        if (text == "/khoa") 
+        else if (text == "/close") 
         {
-            Serial.print("khoa");
+            Serial.print("close");
             String mess_trang_thai_cua = "Đang dong cửa.\n";
-          bot.sendMessage(chatId, mess_trang_thai_cua, "Markdown"); 
-
+            bot.sendMessage(chatId, mess_trang_thai_cua, "Markdown"); 
         }
-        if (text=="/open")
+        else if (text=="/open")
         {
             Serial.print("open");
-        String mess_trang_thai_cua = "Đang mở cửa.\n";
-        bot.sendMessage(chatId, mess_trang_thai_cua, "Markdown");
-        }
-            
-        if (text == "/batden") 
+            String mess_trang_thai_cua = "Đang mở cửa.\n";
+            bot.sendMessage(chatId, mess_trang_thai_cua, "Markdown");
+        }     
+        else if (text == "/batden") 
         { 
             Serial.print("batden");
         }
+        else if (text == "/tatden") 
+        { 
+            Serial.print("tatden");
+        }
         
-        if (text == "/batdau")
+        else if (text == "/HDSD")
         {
             String welcome = "Sau đây là hướng dẫn sử dụng.\n";
             welcome += "Cách soạn văn bản để điều khiển : \n";
-            welcome += "Soạn /chupanh : chụp anh\n";
+            welcome += "Soạn /photo : chụp anh\n";
             //welcome += "/flash : toggle flash LED\n";
             welcome += "Soạn /open để mở cửa.\n";
+            welcome += "Soạn /close để khoa cua.\n";
             welcome += "Soạn /batden : bật đèn sân\n";
             welcome += "Soạn /tatden : tắt đèn sân\n";
             welcome += "............................\n";
