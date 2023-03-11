@@ -17,26 +17,38 @@ SoftwareSerial mySerial(8,7);
 #define RST_PIN 9    
 #define SS_PIN 10   // Nếu dùng Arduino Mega 2560 thì đổi 10 thành 53
 MFRC522 mfrc522(SS_PIN, RST_PIN); 
+#define cam_bien 2
 #define den_san 3
+bool trangThaiDen=false;
 bool trangThaiCua = false;
 #define khoaCua 6//////
 #define coi 5
 #define nutOnOff 4 //trở
 Servo myServo;
 void cua_nha(){
+  
   if (trangThaiCua==false){
     digitalWrite(coi, 1);
-    for (int pos =0; pos <= 180; pos +=1) {
+    if(digitalRead(cam_bien)==1&&trangThaiDen==false){
+      digitalWrite(den_san, 1);
+      trangThaiDen==true;
+    }
+    for (int pos =0; pos <= 100; pos +=1) {
       myServo.write(pos);
-      delay(10);
+      delay(5);
     }
     digitalWrite(coi, 0);
   }
   else if (trangThaiCua==true){
     digitalWrite(coi, 1);
-    for (int pos =180; pos >= 0; pos -= 1) {
+    
+    for (int pos =100; pos >= 0; pos -= 1) {
       myServo.write(pos);
-      delay(15);
+      delay(10);
+    }
+    if(trangThaiDen==true){
+      digitalWrite(den_san, 0);
+      trangThaiDen==false;
     }
     digitalWrite(coi, 0); 
   }
@@ -48,6 +60,7 @@ void setup() {
     Serial.begin(9600); 
     SPI.begin();        
     mfrc522.PCD_Init(); 
+    pinMode(cam_bien, INPUT);
     pinMode(nutOnOff, INPUT);
     pinMode(den_san, OUTPUT);
     pinMode(khoaCua, OUTPUT);
@@ -73,18 +86,18 @@ void xuly_nfc(){
     if(cardUid==2301937817||cardUid==1388679707){
       if (trangThaiCua==false){
         digitalWrite(coi, 1);
-        for (int pos =0; pos <= 180; pos +=1) {
+        for (int pos =0; pos <= 100; pos +=1) {
           myServo.write(pos);
-          delay(10); 
+          delay(5); 
         }
         digitalWrite(coi, 0);
         cardUid=0;
       }
       else if (trangThaiCua==true){
         digitalWrite(coi, 1);
-        for (int pos =180; pos >= 0; pos -= 1) {
+        for (int pos =100; pos >= 0; pos -= 1) {
             myServo.write(pos);
-            delay(15);
+            delay(10);
         }
         digitalWrite(coi, 0);   
         cardUid=0; 
@@ -100,9 +113,9 @@ void xuly_telegram(){
         if (Incoming_value=="open"){
           if (trangThaiCua==false){
             digitalWrite(coi, 1);
-            for (int pos =0; pos <= 180; pos +=1) {
+            for (int pos =0; pos <= 100; pos +=1) {
               myServo.write(pos);
-              delay(10);
+              delay(5);
             }
             digitalWrite(coi, 0);
             trangThaiCua=!trangThaiCua;
@@ -112,9 +125,9 @@ void xuly_telegram(){
         {
           if (trangThaiCua==true){
             digitalWrite(coi, 1);
-            for (int pos =180; pos >= 0; pos -= 1) {
+            for (int pos =100; pos >= 0; pos -= 1) {
               myServo.write(pos);
-              delay(15);
+              delay(10);
             }
             digitalWrite(coi, 0);  
             trangThaiCua=!trangThaiCua;  
@@ -122,11 +135,11 @@ void xuly_telegram(){
         } 
         else if (Incoming_value=="batden")
         {
-          digitalWrite(den_san,1);
+          digitalWrite(den_san,0);
         }
         else if (Incoming_value=="tatden")
         {
-          digitalWrite(den_san,0);
+          digitalWrite(den_san,1);
         }
   }
 }
@@ -136,6 +149,7 @@ void loop()
   xuly_telegram();
   if (digitalRead(nutOnOff)==1)
   {
+    
     cua_nha();
   }
   mfrc522.PCD_SoftPowerUp();
