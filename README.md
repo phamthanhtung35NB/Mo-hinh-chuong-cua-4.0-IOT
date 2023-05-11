@@ -1,4 +1,4 @@
-# Nha_Thong_Minh
+# Mo-hinh-chuong-cua-4.0-IOT
 ## Cấu tạo của sản phẩm:
 - Phần mô hình nhà được làm từ bìa làm mô hình (Formex).
 - Và các linh kiện điện tử:
